@@ -52,7 +52,7 @@ if not df_master.empty:
                               'low_risk': '#4caf50'
                           })
         fig_risk.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-        st.plotly_chart(fig_risk, use_container_width=True)
+        st.plotly_chart(fig_risk, width='stretch')
         
     with right_col:
         st.subheader("Top Driven Reasons for Churn (SHAP)")
@@ -62,7 +62,7 @@ if not df_master.empty:
         fig_reasons = px.bar(reason_counts.head(7), x='Count', y='Reason', orientation='h',
                              color='Count', color_continuous_scale='Reds')
         fig_reasons.update_layout(yaxis={'categoryorder':'total ascending'}, margin=dict(t=0, b=0, l=0, r=0))
-        st.plotly_chart(fig_reasons, use_container_width=True)
+        st.plotly_chart(fig_reasons, width='stretch')
 
     st.markdown("---")
     
@@ -78,7 +78,7 @@ if not df_master.empty:
                     'top_reason_1', 'execution_channel', 'chosen_action', 'action_note']
     
     st.dataframe(display_df[display_cols].sort_values(by='churn_score', ascending=False).head(50), 
-                 use_container_width=True)
+                 width='stretch')
                  
     st.markdown("---")
     
@@ -93,7 +93,7 @@ if not df_master.empty:
         agg_outcomes['retained_90d'] = agg_outcomes['retained_90d'] * 100
         fig_out = px.bar(agg_outcomes, x='chosen_action', y='retained_90d', title='Save Rate by Action (%)', text='retained_90d')
         fig_out.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
-        st.plotly_chart(fig_out, use_container_width=True)
+        st.plotly_chart(fig_out, width='stretch')
         
     with sim_col2:
         # Retention rate by channel
@@ -101,4 +101,4 @@ if not df_master.empty:
         agg_chan['retained_90d'] = agg_chan['retained_90d'] * 100
         fig_chan = px.bar(agg_chan, x='execution_channel', y='retained_90d', title='Save Rate by Channel (%)', text='retained_90d')
         fig_chan.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
-        st.plotly_chart(fig_chan, use_container_width=True)
+        st.plotly_chart(fig_chan, width='stretch')

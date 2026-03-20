@@ -84,7 +84,8 @@ if __name__ == "__main__":
     
     print("Generating SHAP explanations...")
     explainer = ShapExplainer(churn_model.model)
-    explanations_df = explainer.generate_explanations(df_features, raw_df['CustomerId'])
+    id_col = 'CLIENTNUM' if 'CLIENTNUM' in raw_df.columns else 'CustomerId'
+    explanations_df = explainer.generate_explanations(df_features, raw_df[id_col])
     
     print("Saving explanations...")
     save_data(explanations_df, config['paths']['outputs']['folder'] + "explanations.csv")

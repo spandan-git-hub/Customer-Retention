@@ -29,14 +29,38 @@ class ChurnModel:
     def engineer_features(self, df):
         """Feature engineering specific to churn model."""
         df_out = df.copy()
-        df_out['balance_per_product'] = df_out['Balance'] / (df_out['NumOfProducts'] + 1)
-        df_out['salary_to_balance_ratio'] = df_out['EstimatedSalary'] / (df_out['Balance'] + 1)
-        df_out['is_young_inactive'] = ((df_out['Age'] < 30) & (df_out['IsActiveMember'] == 0)).astype(int)
         
-        # Provide default drift and segment features if missing (conceptually mock)
+        # Map columns from Credit Card Customers dataset if present
+        mapping = {
+            'Customer_Age': 'Age',
+            'Total_Revolving_Bal': 'Balance',
+            'Total_Relationship_Count': 'NumOfProducts',
+            'Income_Category': 'EstimatedSalary',
+            'Months_Inactive_12_mon': 'IsActiveMember', # Proxy
+            'Attrition_Flag': 'Exited',
+            'year_birth': 'Age_Birth_Proxy', # if available
+            'balance': 'Balance',
+            'age': 'Age'
+        }
+        for old, new in mapping.items():
+            if old in df_out.columns and new not in df_out.columns:
+                df_out[new] = df_out[old]
+                
+        # Handle target encoding
+        if 'Exited' in df_out.columns and df_out['Exited'].dtype == object:
+            df_out['Exited'] = (df_out['Exited'] == 'Attrited Customer').astype(int)
+            
+        # Ensure numeric types
+        for col in ['Balance', 'NumOfProducts', 'Age']:
+            if col in df_out.columns:
+                df_out[col] = pd.to_numeric(df_out[col], errors='coerce').fillna(0)
+
+        df_out['balance_per_product'] = df_out['Balance'] / (df_out['NumOfProducts'] + 1)
+        df_out['salary_to_balance_ratio'] = 0.0 # difficult to map from categories easily
+        df_out['is_young_inactive'] = ((df_out['Age'] < 30)).astype(int) # proxy
+        
         if 'segment_name' not in df_out.columns:
-            # simple mock rule for demo since they are diff datasets
-            df_out['segment_name'] = np.where(df_out['Balance'] > 100000, 'premium_active', 'dormant_low_value')
+            df_out['segment_name'] = 'premium_active'
             
         if 'spend_change_ratio' not in df_out.columns:
             df_out['spend_change_ratio'] = 0.0
@@ -48,7 +72,26 @@ class ChurnModel:
     def preprocess(self, df, is_train=True):
         X = self.engineer_features(df)
         
-        # Hardcoded features matching feature_config
+        # Fallback for categorical columns
+        for c in ['Geography', 'Gender', 'segment_name', 'sim_txn_trend', 'sim_mobile_app_usage', 'sim_income_change']:
+            if c not in X.columns:
+                X[c] = 'Unknown'
+        
+        # Fallback for numerical columns
+        for c in ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 
+                  'EstimatedSalary', 'balance_per_product', 'salary_to_balance_ratio',
+                  'spend_change_ratio', 'txn_drop_ratio', 'recency_change',
+                  'HasCrCard', 'IsActiveMember', 'is_young_inactive',
+                  'sim_days_since_last_txn', 'sim_monthly_avg_txns', 'sim_category_pref_score',
+                  'sim_product_diversity_index', 'sim_session_freq_score', 'sim_online_offline_ratio',
+                  'sim_complaint_count_12m', 'sim_complaint_severity', 'sim_resolution_time_days',
+                  'sim_relocation_flag', 'sim_job_change_prob', 'sim_price_sensitivity',
+                  'sim_competitor_interaction', 'sim_offer_responsiveness']:
+            if c not in X.columns:
+                X[c] = 0.0
+            else:
+                X[c] = pd.to_numeric(X[c], errors='coerce').fillna(0)
+
         self.cat_cols = ['Geography', 'Gender', 'segment_name', 'sim_txn_trend', 'sim_mobile_app_usage', 'sim_income_change']
         self.num_cols = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 
                     'EstimatedSalary', 'balance_per_product', 'salary_to_balance_ratio',
@@ -78,8 +121,10 @@ class ChurnModel:
         return X
 
     def fit(self, df, target_col='Exited'):
+        # We need the preprocessed df for the target as well if it was mapped
+        df_mapped = self.engineer_features(df)
         X = self.preprocess(df, is_train=True)
-        y = df[target_col]
+        y = df_mapped[target_col]
         
         X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
         
@@ -133,7 +178,7 @@ if __name__ == "__main__":
     scores = churn_model.predict_proba(raw_df)
     
     output_df = pd.DataFrame({
-        'CustomerId': raw_df['CustomerId'],
+        'CustomerId': raw_df['CLIENTNUM'] if 'CLIENTNUM' in raw_df.columns else raw_df.index,
         'churn_score': scores
     })
     

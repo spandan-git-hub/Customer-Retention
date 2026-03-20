@@ -34,23 +34,31 @@ def run_full_pipeline():
     
     # Generate scores
     scores = churn_model.predict_proba(churn_raw)
+    
+    # Map ID column
+    id_col = 'CLIENTNUM' if 'CLIENTNUM' in churn_raw.columns else 'CustomerId'
+    
     df_results = pd.DataFrame({
-        'customer_id': churn_raw['CustomerId'],
+        'customer_id': churn_raw[id_col],
         'churn_score': scores
     })
     
     # Assign Risk Bands
     df_results = churn_model.attach_risk_bands(df_results, config['churn_model']['thresholds'])
     
+    # Map Balance column for segment logic
+    bal_col = 'Total_Revolving_Bal' if 'Total_Revolving_Bal' in churn_raw.columns else 'Balance'
+    bal_series = pd.to_numeric(churn_raw[bal_col], errors='coerce').fillna(0)
+    
     # In a full production system, we'd join segments and drift here by real CustomerID
     # For MVP joined simulation, we mock the logic that was defined in feature_engineering:
-    df_results['segment_name'] = np.where(churn_raw['Balance'] > 100000, 'premium_active', 
-                                np.where(churn_raw['Balance'] == 0, 'dormant_low_value', 'at_risk_mid_tier'))
+    df_results['segment_name'] = np.where(bal_series > 100000, 'premium_active', 
+                                np.where(bal_series == 0, 'dormant_low_value', 'at_risk_mid_tier'))
                                 
     print("================== PHASE 4: EXPLAINABILITY ==================")
     df_features = churn_model.preprocess(churn_raw, is_train=False)
     explainer = ShapExplainer(churn_model.model)
-    explanations_df = explainer.generate_explanations(df_features, churn_raw['CustomerId'])
+    explanations_df = explainer.generate_explanations(df_features, churn_raw[id_col])
     
     # Merge Explanations
     df_results = df_results.merge(explanations_df, on='customer_id', how='left')

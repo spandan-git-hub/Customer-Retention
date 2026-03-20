@@ -32,8 +32,33 @@ class ChannelModel:
     def engineer_features(self, df):
         df_out = df.copy()
         
+        # Map columns from either Marketing Campaign OR Credit Card dataset
+        mapping = {
+            'Year_Birth': 'year_birth',
+            'Income': 'balance',
+            'Recency': 'recency',
+            'Response': 'y',
+            'Customer_Age': 'age',
+            'Total_Revolving_Bal': 'balance',
+            'Age': 'age',
+            'Balance': 'balance'
+        }
+        for old, new in mapping.items():
+            if old in df_out.columns and new not in df_out.columns:
+                df_out[new] = df_out[old]
+        
+        if 'year_birth' in df_out.columns and 'age' not in df_out.columns:
+            df_out['age'] = 2024 - df_out['year_birth']
+            
+        # Ensure numeric
+        for col in ['age', 'balance']:
+            if col in df_out.columns:
+                df_out[col] = pd.to_numeric(df_out[col], errors='coerce').fillna(0)
+
         # Ensure pdays=-1 is handled logically (e.g. 999 days)
-        if 'pdays' in df_out.columns:
+        if 'pdays' not in df_out.columns:
+            df_out['pdays'] = 999
+        else:
             df_out['pdays'] = np.where(df_out['pdays'] == -1, 999, df_out['pdays'])
             
         # Enrich with conceptual values if testing standalone
@@ -43,14 +68,17 @@ class ChannelModel:
             df_out['churn_score'] = 0.5
             
         # Map target (y) and channel (contact) into best_channel
-        # If y=yes, target = contact, else we might drop or assign a fallback
-        if 'y' in df_out.columns and 'contact' in df_out.columns:
-            df_out['best_channel'] = np.where(
-                df_out['contact'] == 'cellular', 'SMS',
-                np.where(df_out['contact'] == 'telephone', 'phone_call', 'email')
-            )
-            # Only train on successful campaigns or treat as multi-class target directly
-            # For simplicity, we predict what channel was used given the profile
+        if 'y' in df_out.columns and 'best_channel' not in df_out.columns:
+            if 'contact' in df_out.columns:
+                df_out['best_channel'] = np.where(
+                    df_out['contact'] == 'cellular', 'SMS',
+                    np.where(df_out['contact'] == 'telephone', 'phone_call', 'email')
+                )
+            else:
+                df_out['best_channel'] = np.where(df_out.get('NumWebPurchases', 0) > 5, 'Email', 
+                                                np.where(df_out.get('NumStorePurchases', 0) > 5, 'Phone', 'SMS'))
+        elif 'best_channel' not in df_out.columns:
+             df_out['best_channel'] = 'Email' # Fallback
             
         return df_out
 
