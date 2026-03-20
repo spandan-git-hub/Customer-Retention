@@ -1,0 +1,20 @@
+# Environments
+venv/
+env/
+.env
+
+# Python caching
+__pycache__/
+*.pyc
+.pytest_cache
+
+# Data and artifacts (do not push large datasets)
+data/raw/
+data/processed/
+artifacts/
+outputs/
+
+# IDEs and System
+.vscode/
+.idea/
+.DS_Store

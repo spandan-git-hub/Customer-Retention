@@ -1,0 +1,25 @@
+# Features Configuration
+rfm:
+  cols_needed: ["CustomerID", "InvoiceDate", "Quantity", "UnitPrice", "InvoiceNo"]
+
+drift:
+  cols_needed: ["CustomerID", "InvoiceDate", "Quantity", "UnitPrice", "InvoiceNo"]
+  windows: [30, 60, 90]
+
+churn:
+  cols_needed: [
+    "CreditScore", "Geography", "Gender", "Age", "Tenure", "Balance", 
+    "NumOfProducts", "HasCrCard", "IsActiveMember", "EstimatedSalary", "Exited"
+  ]
+  numeric_features: ["CreditScore", "Age", "Tenure", "Balance", "NumOfProducts", "EstimatedSalary", "balance_per_product", "salary_to_balance_ratio"]
+  boolean_features: ["HasCrCard", "IsActiveMember", "is_young_inactive"]
+  categorical_features: ["Geography", "Gender", "segment_name"]
+  drift_features: ["spend_change_ratio", "txn_drop_ratio", "recency_change"]
+
+channel:
+  cols_needed: [
+    "age", "job", "marital", "education", "default", "balance", 
+    "housing", "loan", "contact", "campaign", "pdays", "previous", "poutcome", "y"
+  ]
+  features: ["age", "job", "marital", "education", "balance", "campaign", "previous", "pdays", "poutcome", "segment_name_encoded", "churn_score"]
+  target: "best_channel"

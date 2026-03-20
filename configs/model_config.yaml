@@ -1,0 +1,36 @@
+paths:
+  data:
+    raw: "data/raw/"
+    processed: "data/processed/"
+  outputs:
+    folder: "outputs/"
+  artifacts:
+    folder: "artifacts/"
+
+segmentation:
+  n_clusters: 4
+  random_state: 42
+
+churn_model:
+  algorithm: "lightgbm"
+  params:
+    num_leaves: 31
+    learning_rate: 0.05
+    n_estimators: 300
+    random_state: 42
+    class_weight: "balanced"
+    subsample: 0.8
+    colsample_bytree: 0.8
+  thresholds:
+    low_risk: 0.3
+    medium_risk: 0.5
+    high_risk: 0.75
+
+channel_model:
+  algorithm: "random_forest"
+  params:
+    n_estimators: 200
+    max_depth: 10
+    min_samples_leaf: 5
+    random_state: 42
+    class_weight: "balanced"

@@ -1,0 +1,19 @@
+# Rules Engine Configuration
+
+action_priority:
+  RM_CALLBACK: 1
+  RM_VISIT: 2
+  SERVICE_RECOVERY: 3
+  FEE_WAIVER: 4
+  LOYALTY_OFFER: 5
+  PRODUCT_TUTORIAL: 6
+  DIGITAL_PROMPT: 7
+  EMAIL_NUDGE: 8
+  MONITOR_ONLY: 9
+  HOLD_ACTION: 10
+
+channel_fallback:
+  premium_active: "phone_call"
+  high_value_declining: "RM_visit"
+  dormant_low_value: "email"
+  default: "SMS"
