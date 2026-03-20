@@ -49,11 +49,16 @@ class ChurnModel:
         X = self.engineer_features(df)
         
         # Hardcoded features matching feature_config
-        self.cat_cols = ['Geography', 'Gender', 'segment_name']
+        self.cat_cols = ['Geography', 'Gender', 'segment_name', 'sim_txn_trend', 'sim_mobile_app_usage', 'sim_income_change']
         self.num_cols = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 
                     'EstimatedSalary', 'balance_per_product', 'salary_to_balance_ratio',
                     'spend_change_ratio', 'txn_drop_ratio', 'recency_change',
-                    'HasCrCard', 'IsActiveMember', 'is_young_inactive']
+                    'HasCrCard', 'IsActiveMember', 'is_young_inactive',
+                    'sim_days_since_last_txn', 'sim_monthly_avg_txns', 'sim_category_pref_score',
+                    'sim_product_diversity_index', 'sim_session_freq_score', 'sim_online_offline_ratio',
+                    'sim_complaint_count_12m', 'sim_complaint_severity', 'sim_resolution_time_days',
+                    'sim_relocation_flag', 'sim_job_change_prob', 'sim_price_sensitivity',
+                    'sim_competitor_interaction', 'sim_offer_responsiveness']
         
         features = self.num_cols + self.cat_cols
         X = X[features]

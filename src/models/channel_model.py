@@ -21,8 +21,13 @@ class ChannelModel:
             
         self.model = RandomForestClassifier(**self.params)
         self.encoders = {}
-        self.cat_cols = ['job', 'marital', 'education', 'poutcome', 'segment_name_encoded']
-        self.num_cols = ['age', 'balance', 'campaign', 'previous', 'pdays', 'churn_score']
+        self.cat_cols = ['job', 'marital', 'education', 'poutcome', 'segment_name_encoded', 'sim_txn_trend', 'sim_mobile_app_usage', 'sim_income_change']
+        self.num_cols = ['age', 'balance', 'campaign', 'previous', 'pdays', 'churn_score',
+                         'sim_days_since_last_txn', 'sim_monthly_avg_txns', 'sim_category_pref_score',
+                         'sim_product_diversity_index', 'sim_session_freq_score', 'sim_online_offline_ratio',
+                         'sim_complaint_count_12m', 'sim_complaint_severity', 'sim_resolution_time_days',
+                         'sim_relocation_flag', 'sim_job_change_prob', 'sim_price_sensitivity',
+                         'sim_competitor_interaction', 'sim_offer_responsiveness']
         
     def engineer_features(self, df):
         df_out = df.copy()
