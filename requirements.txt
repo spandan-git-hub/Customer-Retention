@@ -5,5 +5,6 @@ lightgbm
 shap
 pyyaml
 streamlit
+altair<5
 plotly
 joblib
