@@ -3,21 +3,94 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+from pathlib import Path
+import shutil
+import subprocess
+import sys
 
 st.set_page_config(layout="wide", page_title="Retention Decision Engine")
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+OUTPUT_DIR = ROOT_DIR / "outputs"
+RAW_DATA_DIR = ROOT_DIR / "data" / "raw"
+DATASET_DIR = ROOT_DIR / "Datasets"
+REQUIRED_OUTPUTS = [
+    OUTPUT_DIR / "master_action_table.csv",
+    OUTPUT_DIR / "outreach_outcomes.csv",
+]
+
+
+def _outputs_ready():
+    return all(path.exists() for path in REQUIRED_OUTPUTS)
+
+
+def _prepare_directories():
+    (ROOT_DIR / "data" / "raw").mkdir(parents=True, exist_ok=True)
+    (ROOT_DIR / "artifacts").mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _seed_raw_data_if_missing():
+    if not DATASET_DIR.exists():
+        return
+    for csv_path in DATASET_DIR.glob("*.csv"):
+        target = RAW_DATA_DIR / csv_path.name
+        if not target.exists():
+            shutil.copy2(csv_path, target)
+
+
+def _run_module(module_name):
+    cmd = [sys.executable, "-m", module_name]
+    completed = subprocess.run(
+        cmd,
+        cwd=str(ROOT_DIR),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"Command failed: {' '.join(cmd)}\n"
+            f"STDOUT:\n{completed.stdout}\n\nSTDERR:\n{completed.stderr}"
+        )
+
+
+def bootstrap_outputs_if_missing():
+    if _outputs_ready():
+        return
+
+    _prepare_directories()
+    _seed_raw_data_if_missing()
+    _run_module("src.models.churn_model")
+    _run_module("src.models.channel_model")
+    _run_module("src.pipelines.full_pipeline")
+
+    if not _outputs_ready():
+        raise RuntimeError("Pipeline finished but required output files are still missing.")
 
 @st.cache_data
 def load_master_data():
     try:
-        df = pd.read_csv('outputs/master_action_table.csv')
-        outcomes = pd.read_csv('outputs/outreach_outcomes.csv')
+        df = pd.read_csv(OUTPUT_DIR / "master_action_table.csv")
+        outcomes = pd.read_csv(OUTPUT_DIR / "outreach_outcomes.csv")
         return df, outcomes
     except FileNotFoundError:
-        st.error("Pipeline outputs not found. Please run src/pipelines/full_pipeline.py first.")
+        st.error("Pipeline outputs are still missing after bootstrap attempt.")
         return pd.DataFrame(), pd.DataFrame()
 
 st.title("🛡️ Predictive Customer Outreach and Retention Engine")
 st.markdown("---")
+
+if not _outputs_ready() and not st.session_state.get("bootstrap_attempted", False):
+    st.session_state["bootstrap_attempted"] = True
+    with st.spinner("Generating pipeline outputs for first run..."):
+        try:
+            bootstrap_outputs_if_missing()
+            st.cache_data.clear()
+            st.success("Pipeline outputs generated. Loading dashboard...")
+        except Exception as ex:
+            st.error("Failed to auto-generate pipeline outputs.")
+            st.exception(ex)
 
 df_master, df_outcomes = load_master_data()
 
