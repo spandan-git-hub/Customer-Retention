@@ -4,7 +4,7 @@ scikit-learn
 lightgbm
 shap
 pyyaml
-streamlit
+streamlit>=1.37,<2
 altair<5
 plotly
 joblib
