@@ -75,22 +75,24 @@ def load_master_data():
         outcomes = pd.read_csv(OUTPUT_DIR / "outreach_outcomes.csv")
         return df, outcomes
     except FileNotFoundError:
-        st.error("Pipeline outputs are still missing after bootstrap attempt.")
+        st.error("Pipeline outputs are missing. Use the generate button below.")
         return pd.DataFrame(), pd.DataFrame()
 
 st.title("🛡️ Predictive Customer Outreach and Retention Engine")
 st.markdown("---")
 
-if not _outputs_ready() and not st.session_state.get("bootstrap_attempted", False):
-    st.session_state["bootstrap_attempted"] = True
-    with st.spinner("Generating pipeline outputs for first run..."):
-        try:
-            bootstrap_outputs_if_missing()
-            st.cache_data.clear()
-            st.success("Pipeline outputs generated. Loading dashboard...")
-        except Exception as ex:
-            st.error("Failed to auto-generate pipeline outputs.")
-            st.exception(ex)
+if not _outputs_ready():
+    st.warning("Required output files are not available yet.")
+    if st.button("Generate Outputs Now (may take several minutes)"):
+        with st.spinner("Running models and pipeline..."):
+            try:
+                bootstrap_outputs_if_missing()
+                st.cache_data.clear()
+                st.success("Pipeline outputs generated. Reloading dashboard...")
+                st.rerun()
+            except Exception as ex:
+                st.error("Failed to generate pipeline outputs.")
+                st.exception(ex)
 
 df_master, df_outcomes = load_master_data()
 
