@@ -251,9 +251,85 @@ def apply_custom_css_light():
             overflow: hidden;
         }
 
+        .header-left {
+            padding-top: 0.15rem;
+        }
+
+        .header-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.65rem, 2.2vw, 2.15rem);
+            line-height: 1.1;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .header-subtitle {
+            color: var(--muted);
+            font-size: 0.92rem;
+            margin-top: 0.28rem;
+            margin-bottom: 0;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-start;
+            gap: 0.38rem;
+            width: 100%;
+        }
+
+        .light-mode-note {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid #111111;
+            border-radius: 10px;
+            background: #fdfdfd;
+            color: #101010;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            padding: 0.34rem 0.62rem;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .light-mode-helper {
+            color: #5f6c77;
+            font-size: 0.75rem;
+            line-height: 1.35;
+            text-align: right;
+            max-width: 290px;
+            margin: 0;
+        }
+
         @media (max-width: 1024px) {
-            .stTitle {
-                font-size: 1.45rem;
+            .header-title {
+                font-size: 1.55rem;
+            }
+
+            .light-mode-note {
+                font-size: 0.78rem;
+                white-space: normal;
+            }
+
+            .light-mode-helper {
+                font-size: 0.72rem;
+                max-width: 240px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-right {
+                align-items: flex-start;
+                margin-top: 0.55rem;
+            }
+
+            .light-mode-helper {
+                text-align: left;
+                max-width: 100%;
             }
         }
     </style>
@@ -1036,6 +1112,31 @@ def render_sidebar_nav():
         return selected
 
 
+def render_main_header():
+    left_col, right_col = st.columns([0.72, 0.28], vertical_alignment="top")
+    with left_col:
+        st.markdown(
+            """
+            <div class='header-left'>
+                <h1 class='header-title'>Retention Decision Engine</h1>
+                <p class='header-subtitle'>Transparent retention analytics workspace</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with right_col:
+        st.markdown(
+            """
+            <div class='header-right'>
+                <div class='light-mode-note'>Light mode recommended</div>
+                <p class='light-mode-helper'>Switch to light mode by clicking on the 3 dots to the top right</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
 def init_session_state():
     defaults = {
         "demo_results": None,
@@ -1057,8 +1158,7 @@ def main():
     apply_custom_css_light()
 
     current_view = render_sidebar_nav()
-    st.title("Retention Decision Engine")
-    st.caption("Transparent retention analytics workspace")
+    render_main_header()
 
     if current_view == "Demo Run":
         render_demo_run()
