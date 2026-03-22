@@ -1,0 +1,11 @@
+CLIENTNUM,Customer_Age,Total_Revolving_Bal,Months_Inactive_12_mon,Total_Relationship_Count,Income_Category,Gender,Geography,Tenure,HasCrCard,IsActiveMember,CreditScore,EstimatedSalary
+2001001,28,18500,4,2,Less than ₹8L,Female,North,3,1,0,645,520000
+2001002,41,72500,2,4,₹8L - ₹12L,Male,West,7,1,1,708,910000
+2001003,56,132000,1,5,₹16L - ₹24L,Female,South,10,1,1,751,1680000
+2001004,35,9800,6,1,Less than ₹8L,Male,East,2,1,0,612,410000
+2001005,49,46500,3,3,₹12L - ₹16L,Female,North,6,1,1,689,1240000
+2001006,32,81000,5,2,₹8L - ₹12L,Male,West,4,1,0,671,860000
+2001007,60,158000,1,6,₹24L+,Female,South,12,1,1,774,2450000
+2001008,39,27800,4,2,₹12L - ₹16L,Male,East,6,1,0,658,1020000
+2001009,46,91000,2,4,₹16L - ₹24L,Female,North,8,1,1,722,1710000
+2001010,30,14900,5,1,Less than ₹8L,Male,West,3,1,0,635,560000
